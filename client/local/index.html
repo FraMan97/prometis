@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROMETIS</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        #main-wrapper {
+            max-width: 1300px;
+            margin: 20px auto;
+            display: flex;
+            gap: 25px;
+            align-items: flex-start;
+        }
+
+        .main-column {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .sidebar-column {
+            flex: 1;
+            position: sticky; 
+            top: 20px; 
+        }
+
+        .section-box {
+            background-color: #2a2a2a;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .section-box h2 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #444;
+            font-size: 1.3em;
+        }
+
+        h1 {
+            color: #4CAF50;
+            text-align: center;
+            border-bottom: 2px solid #3c3c3c;
+            padding-bottom: 10px;
+            margin-bottom: 0; 
+        }
+
+        #message {
+            text-align: center;
+            font-size: 1.1em;
+            color: #FFC107;
+            margin-top: 0; 
+            margin-bottom: 0; 
+            padding: 10px;
+            background-color: #333;
+            border-radius: 5px;
+        }
+
+        
+        .form-group { margin-bottom: 15px; }
+        label { font-weight: bold; display: block; color: #ccc; margin-bottom: 5px; font-size: 0.95em; }
+        input[type="text"],
+        input[type="number"],
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background-color: #444;
+            color: #e0e0e0;
+            font-size: 0.9em;
+            box-sizing: border-box; 
+        }
+        input[readonly], textarea[readonly] { background-color: #333; color: #aaa; cursor: not-allowed; }
+        textarea { resize: vertical; min-height: 60px; }
+        input[type="file"] { padding: 5px; }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            font-weight: bold;
+            font-size: 0.95em;
+        }
+        button:active { transform: scale(0.98); }
+        button:disabled { background-color: #555; cursor: not-allowed; }
+
+        
+        #fetchNodesBtn { width: 100%; background-color: #4CAF50; color: white; font-size: 1.1em; padding: 12px; }
+        #fetchNodesBtn:hover { background-color: #45a049; }
+
+        #panicBtn { background-color: #ff3333; color: white; text-transform: uppercase; padding: 8px 15px; font-size: 0.9em; }
+        #panicBtn:hover { background-color: #cc0000; }
+        #shutdownBtn { background-color: #ff3333; color: white; text-transform: uppercase; padding: 8px 15px; font-size: 0.9em; margin-left: 10px; }
+        #shutdownBtn:hover { background-color: #cc0000; }
+
+        #subscribeBtn, #manualStartBtn, #downloadBtn { background-color: #2196F3; color: white; }
+        #subscribeBtn:hover, #manualStartBtn:hover, #downloadBtn:hover { background-color: #1e88e5; }
+
+        #unsubscribeBtn { background-color: #f44336; color: white; margin-left: 10px; }
+        #unsubscribeBtn:hover { background-color: #e53935; }
+
+        #uploadBtn { background-color: #2196F3; color: white; }
+        #uploadBtn:hover { background-color: #1e88e5; }
+
+        .status-message { font-weight: bold; display: inline-block; margin-left: 15px; font-size: 0.9em; }
+        #subscribeStatus { color: #4CAF50; }
+        #uploadStatus { color: #FFA000; }
+        #downloadStatus { color: #2196F3; }
+
+        
+        .filter-group { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .filter-group label { white-space: nowrap; margin-bottom: 0; }
+        .filter-group input { flex-grow: 1; }
+
+        
+        #file-boxes-wrapper { display: flex; gap: 20px; flex-wrap: wrap; }
+        #file-manager-box, #download-manager-box { flex: 1; min-width: 280px; }
+
+        #file-manager-box { border-left: 4px solid #FFA000; }
+        #file-manager-box h2 { color: #FFA000; }
+        #download-manager-box { border-left: 4px solid #2196F3; }
+        #download-manager-box h2 { color: #2196F3; }
+
+        
+        #cachedFilesList { list-style: none; padding: 0; margin-top: 15px; max-height: 200px; overflow-y: auto; }
+        .file-card { background-color: #3e3e3e; padding: 10px 15px; border-radius: 6px; border-left: 4px solid #FFA000; display: flex; justify-content: space-between; align-items: center; word-break: break-all; margin-bottom: 8px; }
+        .file-card p { margin: 0; font-size: 0.9em; }
+        .file-card button { background-color: #c62828; color: white; padding: 5px 10px; font-size: 0.8em; margin-left: 10px; }
+        .file-card button:hover { background-color: #b71c1c; }
+        #fileListStatus { color: #aaa; font-style: italic; font-size: 0.9em; margin-bottom: 10px; }
+
+        
+        #active-peers-section h2 { color: white; }
+        #activeNodesList { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        .peer-card { background-color: #363636; padding: 15px; border-radius: 8px; border-left: 4px solid #4CAF50; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); font-size: 0.9em; }
+        .peer-info p { margin: 4px 0; word-wrap: break-word; }
+        .peer-info strong { color: #90CAF9; }
+        .peer-card button { background-color: #e53935; color: white; padding: 6px 12px; border-radius: 4px; margin-top: 10px; font-size: 0.85em; }
+        .peer-card button:hover { background-color: #c62828; }
+
+        
+        #config-box { border-left: 4px solid #90CAF9; padding: 20px;}
+        #config-box h2 { color: #90CAF9; font-size: 1.2em;}
+        #manual-session-box h3 { color: #90CAF9; margin-top: 25px; border-top: 1px solid #444; padding-top: 15px; margin-bottom: 15px; font-size: 1.1em; }
+
+        
+        #chat-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); z-index: 1000; justify-content: center; align-items: center; }
+        #chat-modal-box { width: 90%; max-width: 650px; height: 85%; background-color: #2f2f2f; border-radius: 10px; box-shadow: 0 0 25px rgba(0, 0, 0, 0.9); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #555; }
+        #modal-chat-header { background-color: #3b3b3b; color: #4CAF50; padding: 12px 18px; font-size: 1.1em; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #555;}
+        #modal-peer-nickname { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 15px;}
+        #modal-hide-btn { background-color: #757575; color: white; border: none; padding: 4px 8px; border-radius: 50%; cursor: pointer; font-weight: bold; line-height: 1; margin-right: 10px;}
+        #modal-hide-btn:hover { background-color: #616161; }
+        #modal-close-btn { background-color: #c62828; color: white; border: none; padding: 6px 12px; font-size: 0.9em; }
+        #modal-close-btn:hover { background-color: #b71c1c; }
+        #modal-message-area { flex-grow: 1; padding: 15px; overflow-y: auto; background-color: #2a2a2a; }
+        .chat-message { margin-bottom: 10px; padding: 8px 12px; border-radius: 15px; max-width: 80%; word-wrap: break-word; line-height: 1.4; font-size: 0.95em; }
+        .my-message { background-color: #2E7D32; color: #FFFFFF; margin-left: auto; text-align: left; border-bottom-right-radius: 5px; }
+        .their-message { background-color: #4b5a6a; color: #e0e0e0; text-align: left; border-bottom-left-radius: 5px; }
+        #modal-message-input-form { display: flex; padding: 15px; border-top: 1px solid #555; background-color: #3b3b3b; }
+        #modal-chat-input { flex-grow: 1; padding: 10px; margin-right: 10px; }
+        #modal-send-btn { background-color: #2196F3; color: white; padding: 10px 18px; }
+        #modal-send-btn:hover { background-color: #1e88e5; }
+
+    </style>
+</head>
+<body>
+    <div id="main-wrapper">
+
+        <div class="main-column">
+            <h1>Prometis</h1>
+            <p id="message"></p>
+
+            <div id="server-interaction-wrapper" class="section-box">
+                <h2>Discovery Server & Subscription</h2>
+                <div id="fetchNodesControl" style="background-color: transparent; padding: 0; margin-bottom: 20px;">
+                    <div id="panic-container" style="margin-bottom: 15px;">
+                         <button id="panicBtn" onclick="triggerPanic()">Panic</button>
+                         <button id="shutdownBtn" onclick="shutdownApplication()">Close Application</button>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterAddress">Filter by address:</label>
+                        <input type="text" id="filterAddress" placeholder="Peer address (optional)">
+                    </div>
+                    <button id="fetchNodesBtn" onclick="fetchActiveNodes()">Refresh Active Peers</button>
+                </div>
+
+                <div id="subscribe-form" style="background-color: transparent; padding: 0; margin-top: 0; border: none;">
+                    <form id="subscribeFormElement">
+                        <div class="form-group">
+                            <label for="subAddress">Address:</label>
+                            <input type="text" id="subAddress" required readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="subNickname">Nickname:</label>
+                            <input type="text" id="subNickname" required placeholder="Es: anon123">
+                        </div>
+                        <div class="form-group">
+                            <label for="subPublicKey">Public Key (PEM):</label>
+                            <input type="text" id="subPublicKey" required readonly>
+                        </div>
+                        <button type="submit" id="subscribeBtn">Subscribe</button>
+                        <button type="button" id="unsubscribeBtn" onclick="unsubscribeNode()">Remove Subscription</button>
+                        <span id="subscribeStatus" class="status-message"></span>
+                    </form>
+                </div>
+            </div>
+
+            <div id="file-management-wrapper" class="section-box">
+                 <h2>File Management</h2>
+                 <div id="file-boxes-wrapper">
+                    <div id="file-manager-box" class="section-box" style="padding: 0; background: transparent; box-shadow: none; border-radius: 0; border-left: none;">
+                        <h3>Caching Storage Files</h3>
+                        <form id="uploadForm">
+                            <div class="form-group">
+                                <label for="fileInput">Select file:</label>
+                                <input type="file" id="fileInput" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="ttlInput">Expiration (seconds, default 1800):</label>
+                                <input type="number" id="ttlInput" placeholder="1800">
+                            </div>
+                            <button type="submit" id="uploadBtn">Upload File</button>
+                            <span id="uploadStatus" class="status-message"></span>
+                        </form>
+
+                        <h4 style="margin-top: 25px; margin-bottom: 5px;">Files in storage</h4>
+                        <p id="fileListStatus">Loading...</p>
+                        <ul id="cachedFilesList"></ul>
+                    </div>
+
+                    <div id="download-manager-box" class="section-box" style="padding: 0; background: transparent; box-shadow: none; border-radius: 0; border-left: none;">
+                        <h3>Download File</h3>
+                        <form id="downloadForm">
+                            <div class="form-group">
+                                <label for="downloadAddress">Address:</label>
+                                <input type="text" id="downloadAddress" required placeholder="Es: anon123">
+                            </div>
+                            <div class="form-group">
+                                <label for="downloadFileId">File ID:</label>
+                                <input type="text" id="downloadFileId" required placeholder="8bf32ce8-655c-46b0-a45b-a7783e01bf0e">
+                            </div>
+                            <div class="form-group">
+                                <label for="downloadPath">Local path to storage the file:</label>
+                                <input type="text" id="downloadPath" required placeholder="Es: C:\Users\Nome\Downloads">
+                            </div>
+                            <button type="submit" id="downloadBtn">Download</button>
+                            <span id="downloadStatus" class="status-message"></span>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div id="active-peers-section" class="section-box">
+                <h2>Available Active Peers</h2>
+                <ul id="activeNodesList"></ul>
+            </div>
+        </div>
+
+        <div class="sidebar-column">
+             <div id="config-box" class="section-box">
+                <h2>Local Configurations</h2>
+                <div class="config-field">
+                    <label for="configOnionAddress">Local Peer:</label>
+                    <input type="text" id="configOnionAddress" readonly >
+                </div>
+                <div class="config-field">
+                    <label for="configPublicKey">Public Key (RSA):</label>
+                    <textarea id="configPublicKey" readonly rows="5"></textarea>
+                </div>
+
+                <div id="manual-session-box">
+                    <h3>Start Manual Session</h3>
+                    <form id="manualSessionForm" onsubmit="handleManualStartSession(event)">
+                        <div class="config-field">
+                            <label for="manualAddress">Address:</label>
+                            <input type="text" id="manualAddress" required placeholder="Es: anon123">
+                        </div>
+                        <div class="config-field">
+                            <label for="manualNickname">Nickname:</label>
+                            <input type="text" id="manualNickname" required placeholder="Nickname">
+                        </div>
+                        <div class="config-field">
+                            <label for="manualPublicKey">Public Key (PEM):</label>
+                            <textarea id="manualPublicKey" required rows="5" placeholder="-----BEGIN PUBLIC KEY-----..."></textarea>
+                        </div>
+                        <button type="submit" id="manualStartBtn">Start</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="chat-modal-overlay">
+        <div id="chat-modal-box">
+            <div id="modal-chat-header">
+                <span id="modal-peer-nickname">Chat</span>
+                <button id="modal-hide-btn" onclick="hideModal()" title="Close the window">X</button>
+                <button id="modal-close-btn" onclick="closeSession(modalActivePeerAddress)">Close Session</button>
+            </div>
+            <div id="modal-message-area">
+                <p style="text-align: center; color: #888;">The history will not be stored persistently</p>
+            </div>
+            <form id="modal-message-input-form" onsubmit="handleSendMessage(event)">
+                <input type="text" id="modal-chat-input" placeholder="Write a message...">
+                <button type="submit" id="modal-send-btn">Send</button>
+            </form>
+        </div>
+    </div>
+
+
+    <script>
+        
+        const localPeer = "localhost:3056";
+        
+        const CLIENT_SUBSCRIBE_URL = `http://${localPeer}/local/subscribe`;
+        const CLIENT_ACTIVE_PEERS_URL = `http://${localPeer}/local/active-peers`;
+        const CLIENT_RESET_URL = `http://${localPeer}/local/reset`;
+        const CLIENT_CONFIG_URL = `http://${localPeer}/local/configurations`;
+        const CLIENT_INITIATE_SESSION_URL = `http://${localPeer}/local/start-session`;
+        const CLIENT_CLOSE_SESSION_URL = `http://${localPeer}/local/close-session`;
+        const CLIENT_SEND_MESSAGE_URL = `http://${localPeer}/local/send-message`;
+        const CLIENT_GET_MESSAGES_URL = `http://${localPeer}/local/get-messages`;
+        const CLIENT_SHUTDOWN_URL = `http://${localPeer}/local/shutdown`;
+        const CLIENT_UNSUBSCRIBE_URL = `http://${localPeer}/local/unsubscribe`;
+        const CLIENT_UPLOAD_FILE_URL = `http://${localPeer}/local/files`;
+        const CLIENT_GET_FILES_URL = `http://${localPeer}/local/files`;
+        const CLIENT_DELETE_FILE_URL = `http://${localPeer}/local/files`;
+        const CLIENT_DOWNLOAD_FILE_URL = `http://${localPeer}/local/download-file`;
+
+        const AUTO_REFRESH_INTERVAL = 5 * 60 * 1000;
+        const CHAT_POLL_INTERVAL_MS = 5000;
+        const FILE_POLL_INTERVAL_MS = 2 * 60 * 1000;
+
+        const nodesList = document.getElementById('activeNodesList');
+        const messageDisplay = document.getElementById('message');
+        const subscribeForm = document.getElementById('subscribeFormElement');
+        const subscribeStatus = document.getElementById('subscribeStatus');
+        const filterAddressInput = document.getElementById('filterAddress');
+        const configOnionAddress = document.getElementById('configOnionAddress');
+        const configPublicKey = document.getElementById('configPublicKey');
+        const subAddressInput = document.getElementById('subAddress');
+        const subPublicKeyInput = document.getElementById('subPublicKey');
+        const chatModalOverlay = document.getElementById('chat-modal-overlay');
+        const modalPeerNickname = document.getElementById('modal-peer-nickname');
+        const modalMessageArea = document.getElementById('modal-message-area');
+        const modalChatInput = document.getElementById('modal-chat-input');
+        const uploadForm = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const ttlInput = document.getElementById('ttlInput');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const cachedFilesList = document.getElementById('cachedFilesList');
+        const fileListStatus = document.getElementById('fileListStatus');
+        const downloadForm = document.getElementById('downloadForm');
+        const downloadAddressInput = document.getElementById('downloadAddress');
+        const downloadFileIdInput = document.getElementById('downloadFileId');
+        const downloadPathInput = document.getElementById('downloadPath');
+        const downloadStatus = document.getElementById('downloadStatus');
+
+        let modalActivePeerAddress = null;
+        let clientLocalAddress = null;
+        let clientLocalNickname = null;
+        let chatPollInterval = null;
+
+        subscribeForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            subscribeNode();
+        });
+
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleFileUpload();
+        });
+
+        downloadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleFileDownload();
+        });
+
+        async function fetchConfigurations() {
+            try {
+                const response = await fetch(CLIENT_CONFIG_URL);
+                if (!response.ok) {
+                    let errorDetails = response.statusText;
+                    try { const errorJson = await response.json(); errorDetails = errorJson.message || errorDetails; } catch (e) {}
+                    throw new Error(`HTTP Error ${response.status}: ${errorDetails}`);
+                }
+                const data = await response.json();
+                const configData = data.message;
+                
+                configOnionAddress.value = configData.onionAddress || 'N/A';
+                configPublicKey.value = configData.publicKey;
+                subAddressInput.value = configData.onionAddress || 'Address Error';
+                subPublicKeyInput.value = configData.publicKey;
+                clientLocalAddress = configData.onionAddress;
+                clientLocalNickname = configData.nickname; 
+                if (clientLocalNickname) { document.getElementById('subNickname').value = clientLocalNickname; }
+                configPublicKey.title = configData.publicKey;
+            } catch (error) {
+                console.error('Error loading configurations:', error);
+                resetConfigurationFields();
+                messageDisplay.textContent = `Configuration not loaded.`;
+            }
+        }
+
+        function resetConfigurationFields() {
+            configOnionAddress.value = 'KEYS DELETED';
+            configPublicKey.value = 'KEYS DELETED';
+            subAddressInput.value = 'KEYS DELETED';
+            subPublicKeyInput.value = 'KEYS DELETED';
+            clientLocalAddress = null;
+            clientLocalNickname = null;
+            configPublicKey.title = 'KEYS DELETED';
+        }
+
+        async function fetchActiveNodes() {
+            nodesList.innerHTML = '';
+            messageDisplay.textContent = 'Loading peers...';
+            const filterValue = filterAddressInput.value.trim();
+            let serverApi = CLIENT_ACTIVE_PEERS_URL;
+            if (filterValue) { serverApi = `${CLIENT_ACTIVE_PEERS_URL}?address=${encodeURIComponent(filterValue)}`; }
+            try {
+                const response = await fetch(serverApi);
+                if (!response.ok) { throw new Error(`HTTP Error: ${response.status}`); }
+                const data = await response.json();
+                const peers = data.activePeers; 
+                if (!peers || peers.length === 0 || peers[0] === null) {
+                    messageDisplay.textContent = filterValue ? `No peer found with address: ${filterValue}.` : 'No active peers found.';
+                    return;
+                }
+                messageDisplay.textContent = `${peers.length} peers found. Last update: ${new Date().toLocaleTimeString()}`;
+                peers.forEach(peer => {
+                    if (peer.address === clientLocalAddress) { return; }
+                    const listItem = document.createElement('li');
+                    listItem.className = 'peer-card';
+                    listItem.innerHTML = `
+                        <div class="peer-info">
+                            <p><strong>Nickname:</strong> ${peer.nickname}</p>
+                            <p><strong>Address:</strong> ${peer.address}</p>
+                            <p><strong>Public Key (PEM):</strong> ${peer.publicKey.substring(0, 40)}... [Truncated]</p>
+                        </div>
+                        <button onclick="startSession('${peer.address}', '${peer.nickname}', '${peer.publicKey}')">Start Session</button>`;
+                    nodesList.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error loading peers:', error);
+                messageDisplay.textContent = `Connection error: is the discovery server active? ${error.message}`;
+            }
+        }
+
+        async function subscribeNode() {
+            const address = subAddressInput.value;
+            const publicKey = subPublicKeyInput.value;
+            const nickname = document.getElementById('subNickname').value;
+            const subscribeBtn = document.getElementById('subscribeBtn');
+            subscribeStatus.textContent = 'Sending...';
+            subscribeBtn.disabled = true;
+            
+            const subscriptionData = { address: address, nickname: nickname, publicKey: publicKey };
+            try {
+                const response = await fetch(CLIENT_SUBSCRIBE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(subscriptionData) });
+                const now = new Date().toLocaleTimeString();
+                if (response.ok && response.status === 200) {
+                    subscribeStatus.textContent = `Last subscription at: ${now}`;
+                    subscribeStatus.style.color = '#4CAF50';
+                    fetchActiveNodes();
+                } else {
+                    const errorData = await response.json();
+                    subscribeStatus.textContent = `Subscription error: ${errorData.error || 'Server error'}`;
+                    subscribeStatus.style.color = '#f44336';
+                }
+            } catch (error) {
+                console.error('Subscription error:', error);
+                subscribeStatus.textContent = `Connection error: is the discovery server active?`;
+                subscribeStatus.style.color = '#f44336';
+            } finally {
+                subscribeBtn.disabled = false;
+            }
+        }
+
+        async function unsubscribeNode() {
+            const address = subAddressInput.value;
+            if (!address || address.includes('KEYS') || address.includes('N/A')) { alert('Address not valid for deleting.'); return; }
+            if (!confirm(`Are you sure you want to remove the subscription for the address ${address}?`)) { return; }
+            const unsubscribeBtn = document.getElementById('unsubscribeBtn');
+            subscribeStatus.textContent = 'Deleting...';
+            unsubscribeBtn.disabled = true;
+            try {
+                const response = await fetch(CLIENT_UNSUBSCRIBE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ address: address }) });
+                const now = new Date().toLocaleTimeString();
+                if (response.ok) {
+                    subscribeStatus.textContent = `Delete completed at: ${now}`;
+                    subscribeStatus.style.color = '#4CAF50';
+                    fetchActiveNodes();
+                } else {
+                    const errorData = await response.json();
+                    subscribeStatus.textContent = `Deleting error: ${errorData.error || 'Server error'}`;
+                    subscribeStatus.style.color = '#f44336';
+                }
+            } catch (error) {
+                console.error('Deleting error during unsubcription:', error);
+                subscribeStatus.textContent = `Connection error to local peer. Endpoint /local/unsubscribe active?`;
+                subscribeStatus.style.color = '#f44336';
+            } finally {
+                unsubscribeBtn.disabled = false;
+            }
+        }
+
+        async function startSession(destinationAddress, destinationNickname, destinationPublicKey) {
+            const clientAddress = clientLocalAddress;
+            const clientPublicKey = configPublicKey.value;
+            clientLocalNickname = document.getElementById('subNickname').value || 'Local_Peer';
+            if (!clientAddress || clientAddress.includes('KEYS') || clientAddress.includes('N/A')) { alert('Impossible start the session: configuration data are not valid or are reset.'); return; }
+            const sessionInitData = {
+                senderAddress: clientAddress,
+                senderNickname: clientLocalNickname,
+                senderPublicKey: clientPublicKey,
+                destinationAddress: destinationAddress,
+                destinationNickname: destinationNickname,
+                destinationPublicKey: destinationPublicKey
+            };
+            try {
+                const response = await fetch(CLIENT_INITIATE_SESSION_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(sessionInitData) });
+                if (!response.ok) { const errorText = await response.text(); alert(`Impossible start the session: ${response.statusText}. Details: ${errorText}`); return; }
+                modalActivePeerAddress = destinationAddress; 
+                modalPeerNickname.textContent = `Chat with ${destinationNickname} (${destinationAddress})`;
+                modalMessageArea.innerHTML = `<p style="text-align: center; color: #888;">The history is not stored persistently.</p>`;
+                chatModalOverlay.style.display = 'flex';
+                startChatPolling();
+            } catch (error) { alert(`Error during the session starting: ${error.message}`); }
+        }
+
+        async function closeSession(address) {
+            const peerToClose = address || modalActivePeerAddress;
+            const clientAddress = clientLocalAddress; 
+            if (!peerToClose) { chatModalOverlay.style.display = 'none'; stopChatPolling(); return; }
+            if (!confirm(`Are you sure you want to close the session with ${peerToClose}?`)) { return; }
+            stopChatPolling();
+            try {
+                
+                const response = await fetch(CLIENT_CLOSE_SESSION_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ senderAddress: clientAddress, destinationAddress: peerToClose }) });
+                if (response.ok) { alert(`Session with ${peerToClose} closed successfully`); } else { alert("Error during the session closing."); }
+            } catch (error) { console.error("Network error during the session closing:", error); alert("Network error: Impossible connecting with the other peer."); }
+            finally { chatModalOverlay.style.display = 'none'; modalActivePeerAddress = null; }
+        }
+
+        async function handleSendMessage(e) {
+            e.preventDefault();
+            const message = modalChatInput.value.trim();
+            const destinationAddress = modalActivePeerAddress; 
+            const senderAddress = clientLocalAddress;
+            if (!message) { alert('The message cannot be empty.'); return; }
+            if (!destinationAddress || !senderAddress) { alert('Error: The session is not active or the address is missing.'); return; }
+            
+            const messageData = { message: message, destinationAddress: destinationAddress, senderAddress: senderAddress };
+            modalChatInput.value = ''; modalChatInput.disabled = true;
+            try {
+                const response = await fetch(CLIENT_SEND_MESSAGE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(messageData) });
+                if (response.ok) { const data = await response.json(); console.log(`Message sent successfully to ${destinationAddress}.`, data.message); await fetchMessages(); }
+                else { const errorDetails = await response.text(); alert(`Error during the message sending`); console.error(`Error sending message:`, errorDetails); }
+            } catch (error) { alert(`Network error: Impossible connecting with the other peer.`); console.error("Network error during message sending:", error); }
+            finally { modalChatInput.disabled = false; modalChatInput.focus(); }
+        }
+
+        async function triggerPanic() {
+            if (!confirm("Are you sure? This action will clean sensitive data (keys, messages, opened sessions, stored files, ...)")) { return; }
+            stopChatPolling(); messageDisplay.textContent = 'Panic execution...';
+            try {
+                const response = await fetch(CLIENT_RESET_URL, { method: 'POST' });
+                if (response.ok) {
+                    messageDisplay.textContent = "Reset completed! New keys pair generated.";
+                    await fetchConfigurations(); chatModalOverlay.style.display = 'none'; modalActivePeerAddress = null; fetchActiveNodes(); fetchCachedFiles();
+                } else { resetConfigurationFields(); const errorData = await response.json(); messageDisplay.textContent = `Error during the reset: ${errorData.message || response.statusText}`; }
+            } catch (error) { console.error('Error during the reset:', error); messageDisplay.textContent = `Connection error with the client. Is the client running?`; }
+        }
+
+        async function shutdownApplication() {
+            if (!confirm("Are you sure you want to close the application?")) { return; }
+            messageDisplay.textContent = 'Closing application...';
+            try {
+                const response = await fetch(CLIENT_SHUTDOWN_URL, { method: 'POST' });
+                if (response.ok) {
+                    messageDisplay.textContent = "Application closed"; document.body.style.backgroundColor = '#111'; alert('Application closed.');
+                    document.getElementById('panicBtn').disabled = true; document.getElementById('shutdownBtn').disabled = true; document.getElementById('fetchNodesBtn').disabled = true; document.getElementById('subscribeBtn').disabled = true; window.close();
+                } else { const errorText = await response.text(); messageDisplay.textContent = `Error during the shutdown: ${errorText || response.statusText}`; }
+            } catch (error) {
+                console.error('Network error during the shutdown:', error); messageDisplay.textContent = `Shutdown request sent. The application is closing.`; document.body.style.backgroundColor = '#111'; document.getElementById('panicBtn').disabled = true; document.getElementById('shutdownBtn').disabled = true;
+            }
+        }
+
+        function hideModal() { chatModalOverlay.style.display = 'none'; stopChatPolling(); }
+
+        function handleManualStartSession(event) {
+            event.preventDefault();
+            const destAddress = document.getElementById('manualAddress').value.trim(); 
+            const destNickname = document.getElementById('manualNickname').value.trim();
+            const destPubkeyRaw = document.getElementById('manualPublicKey').value.trim();
+            if (!destAddress || !destNickname || !destPubkeyRaw) { alert("All fields are mandatory to start a manual session."); return; }
+            startSession(destAddress, destNickname, destPubkeyRaw);
+        }
+
+        function startChatPolling() { stopChatPolling(); fetchMessages(); chatPollInterval = setInterval(fetchMessages, CHAT_POLL_INTERVAL_MS); console.log(`Polling messages started (ID: ${chatPollInterval}) every ${CHAT_POLL_INTERVAL_MS}ms`); }
+        function stopChatPolling() { if (chatPollInterval) { clearInterval(chatPollInterval); console.log(`Polling messages stopped (ID: ${chatPollInterval})`); chatPollInterval = null; } }
+
+        async function fetchMessages() {
+            if (!modalActivePeerAddress || !clientLocalNickname) { console.warn("Fetch messages skipped: session is not active."); stopChatPolling(); return; }
+            try {
+                
+                const url = `${CLIENT_GET_MESSAGES_URL}?destinationAddress=${encodeURIComponent(modalActivePeerAddress)}`;
+                const response = await fetch(url);
+                if (!response.ok) { console.error(`HTTP error ${response.status} during the fetch of messages.`); return; }
+                const messages = await response.json(); const isScrolledToBottom = modalMessageArea.scrollHeight - modalMessageArea.clientHeight <= modalMessageArea.scrollTop + 5;
+                modalMessageArea.innerHTML = `<p style="text-align: center; color: #888;">The history is not stored persistently.</p>`;
+                messages.forEach(msg => {
+                    const msgElement = document.createElement('div');
+                    
+                    msgElement.className = msg.sender === clientLocalAddress ? 'chat-message my-message' : 'chat-message their-message';
+                    msgElement.textContent = msg.message; modalMessageArea.appendChild(msgElement);
+                });
+                if (isScrolledToBottom) { modalMessageArea.scrollTop = modalMessageArea.scrollHeight; }
+            } catch (error) { console.error("Network error during the fetch of messages:", error); }
+        }
+
+        async function handleFileUpload() {
+            const file = fileInput.files[0]; if (!file) { alert('No file selected.'); return; }
+            const formData = new FormData(); formData.append('file', file); 
+            const ttl = ttlInput.value; if (ttl) { formData.append('ttl', ttl); }
+            const uploadBtn = document.getElementById('uploadBtn'); uploadStatus.textContent = 'Loading...'; uploadBtn.disabled = true;
+            try {
+                const response = await fetch(CLIENT_UPLOAD_FILE_URL, { method: 'POST', body: formData });
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    uploadStatus.textContent = `File stored! ID: ${data.fileId}`;
+                    uploadStatus.style.color = '#4CAF50'; uploadForm.reset(); fetchCachedFiles();
+                } else { const errorData = await response.json(); uploadStatus.textContent = `Error: ${errorData.error || 'Upload failed'}`; uploadStatus.style.color = '#f44336'; }
+            } catch (error) { console.error('Error during the upload of the file:', error); uploadStatus.textContent = `Connection error to the peer.`; uploadStatus.style.color = '#f44336'; }
+            finally { uploadBtn.disabled = false; }
+        }
+
+        async function fetchCachedFiles() {
+            try {
+                const response = await fetch(CLIENT_GET_FILES_URL); if (!response.ok) { fileListStatus.textContent = `Error ${response.status} during the loading file ids.`; return; }
+                const data = await response.json();
+                
+                renderFileList(data.fileIds || []);
+            } catch (error) { console.error('Error fetch file ids list:', error); fileListStatus.textContent = `Connection error to the local peer.`; }
+        }
+
+        function renderFileList(fileIds) { 
+            cachedFilesList.innerHTML = '';
+            if (fileIds.length === 0) { fileListStatus.textContent = 'No files found in the cache.'; return; }
+            fileListStatus.textContent = `View ${fileIds.length} files. Update every 2 minutes.`;
+            fileIds.forEach(fileId => { 
+                const listItem = document.createElement('li'); listItem.className = 'file-card';
+                
+                listItem.innerHTML = `<p><strong>File ID:</strong> ${fileId}</p><button onclick="deleteFile('${fileId}')">Delete</button>`;
+                cachedFilesList.appendChild(listItem);
+            });
+        }
+
+        async function deleteFile(fileId) { 
+            if (!confirm(`Are you sure you want to delete the file ${fileId}?`)) { return; }
+            try {
+                
+                const response = await fetch(`${CLIENT_DELETE_FILE_URL}/${fileId}`, { method: 'DELETE' });
+                if (response.ok) { alert('File deleted successfully.'); fetchCachedFiles(); }
+                else { const errorData = await response.json(); alert(`Error: ${errorData.error || 'Delete failed'}`); }
+            } catch (error) { console.error('Error deleting file:', error); alert('Connection error during the deletion.'); }
+        }
+
+        async function handleFileDownload() {
+            const destinationAddress = downloadAddressInput.value.trim(); 
+            const fileId = downloadFileIdInput.value.trim(); 
+            const downloadPath = downloadPathInput.value.trim(); 
+            const downloadBtn = document.getElementById('downloadBtn'); downloadStatus.textContent = 'Downloading...'; downloadStatus.style.color = '#FFA000'; downloadBtn.disabled = true;
+            try {
+                
+                const response = await fetch(CLIENT_DOWNLOAD_FILE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ destinationAddress: destinationAddress, fileId: fileId, downloadPath: downloadPath }) });
+                if (response.ok) {
+                    const data = await response.json(); downloadStatus.textContent = `Download OK! Stored in: ${data.path}`; downloadStatus.style.color = '#4CAF50'; downloadForm.reset();
+                } else { const errorData = await response.json(); downloadStatus.textContent = `Error: ${errorData.error || 'Data are not valid'}`; downloadStatus.style.color = '#f44336'; }
+            } catch (error) { console.error('Network error during the download:', error); downloadStatus.textContent = `Connection error to local peer.`; downloadStatus.style.color = '#f44336'; }
+            finally { downloadBtn.disabled = false; }
+        }
+
+        fetchConfigurations(); fetchActiveNodes(); fetchCachedFiles();
+        setInterval(fetchActiveNodes, AUTO_REFRESH_INTERVAL); setInterval(fetchCachedFiles, FILE_POLL_INTERVAL_MS);
+        console.log(`Automatic update of active peers every ${AUTO_REFRESH_INTERVAL / 60000} minutes.`);
+        console.log(`Automatic update of file cache every ${FILE_POLL_INTERVAL_MS / 60000} minutes.`);
+    </script>
+</body>
+</html>
