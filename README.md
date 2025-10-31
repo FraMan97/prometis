@@ -1,4 +1,4 @@
-> A P2P (peer-to-peer), decentralized  anonymous chat and file-sharing application built entirely on the Tor network.
+> A P2P (peer-to-peer), private decentralized anonymous chat and file-sharing application built entirely on the Tor network.
 
 
 
@@ -51,6 +51,8 @@ Any use for illegal purposes is neither supported nor encouraged by the develope
 * [How to Use](#how-to-use)
 
 * [Security Considerations](#security-considerations)
+
+* [Roadmap](#roadmap)
 
 
 ---
@@ -356,3 +358,22 @@ This project was designed with security and anonymity as the highest priorities.
 * **Frontend-Backend Separation:** The sensitive RSA private key **never** leaves the local backend server. The browser-based UI has no access to sensitive cryptographic material.
 
 * **Path Traversal Protection:** The file download API is secured against path traversal attacks, ensuring a user cannot be tricked into overwriting system files.
+
+
+
+---
+
+
+
+## Roadmap
+
+
+
+Here is future planned developments:
+
+* Add rate limiting for clients and the discovery server.
+
+* Add expiring messages between clients.
+
+* Add online and offline status for clients.
+
