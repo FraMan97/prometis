@@ -51,7 +51,10 @@ For a truly server-less deployment, the features related to the Discovery Server
 
 * [Security Considerations](#security-considerations)
 
+* [Demo](#demo)
+
 * [Roadmap](#roadmap)
+
 
 
 ---
@@ -360,6 +363,20 @@ This project was designed with security and anonymity as the highest priorities.
 
 * **DoS Protection (Rate Limiting):** Strict rate limits are enforced on both the Discovery Server and client P2P endpoints to prevent spam, resource exhaustion and abuse.
 
+
+
+---
+
+
+
+## Demo 
+
+
+
+The video demo live with two clients:  
+
+
+https://github.com/user-attachments/assets/10e47e65-cca0-48d8-a435-a843671e967e
 
 
 ---

@@ -15,7 +15,7 @@ const senderAddressKeyGenerator = (req: Request): string => {
         return body.address;
     }
 
-    return req.ip || ""; 
+    return ""; 
 };
 
 export const subscriptionLimiter = rateLimit({
@@ -26,15 +26,10 @@ export const subscriptionLimiter = rateLimit({
     keyGenerator: senderAddressKeyGenerator
 });
 
-const ipKeyGenerator = (req: Request): string => {
-    return req.ip || ""; 
-};
-
 export const activePeersLimiter = rateLimit({
     windowMs: 60 * 1000, 
     max: 1000,
     standardHeaders: true, 
     legacyHeaders: false,
-    keyGenerator: ipKeyGenerator
 });
 

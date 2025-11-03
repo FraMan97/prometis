@@ -64,7 +64,7 @@ const senderAddressKeyGenerator = (req: Request): string => {
         return body.senderAddress;
     }
 
-    return req.ip || ""; 
+    return ""; 
 };
 
 export const sessionLimiter = rateLimit({
