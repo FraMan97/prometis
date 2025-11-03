@@ -4,7 +4,7 @@ import config from './config/config.js';
 import cors from 'cors';
 import { validateActiveNodes, validateSubscription } from './services/validation.js';
 import { verifySignature } from './services/common.js';
-import { activePeersCache } from './models/global.js';
+import { activePeersCache, activePeersLimiter, subscriptionLimiter } from './models/global.js';
 import { spawn } from 'child_process';
 import { chmodSync, mkdirSync, readFileSync, rmSync } from 'fs';
 import path from 'path';
@@ -28,7 +28,7 @@ app.use(cors({
 
 app.use(express.json());
 
-app.post("/subscribe", validateSubscription(SubscriptionSchema), (req: Request<{}, {}, SubscriptionBody, {}>, res: Response) => {
+app.post("/subscribe", validateSubscription(SubscriptionSchema), subscriptionLimiter, (req: Request<{}, {}, SubscriptionBody, {}>, res: Response) => {
     const { address, nickname, publicKey: publicKey } = req.body;
 
     console.log(`Received a subscribe request`, req.body);
@@ -48,7 +48,7 @@ app.post("/subscribe", validateSubscription(SubscriptionSchema), (req: Request<{
     }
 });
 
-app.post("/unsubscribe", validateSubscription(UnSubscriptionSchema), (req: Request<{}, {}, UnSubscriptionBody, {}>, res: Response) => {
+app.post("/unsubscribe", validateSubscription(UnSubscriptionSchema), subscriptionLimiter, (req: Request<{}, {}, UnSubscriptionBody, {}>, res: Response) => {
     const { address, signature } = req.body;
 
     console.log(`Received an unsubscribe request for`, address);
@@ -83,7 +83,7 @@ app.post("/unsubscribe", validateSubscription(UnSubscriptionSchema), (req: Reque
     }
 });
 
-app.get("/active-peers", validateActiveNodes(ActiveNodesQueryParamSchema), (req: Request<{}, {}, {}, ActiveNodesQueryParam>, res: Response) => {
+app.get("/active-peers", validateActiveNodes(ActiveNodesQueryParamSchema), activePeersLimiter, (req: Request<{}, {}, {}, ActiveNodesQueryParam>, res: Response) => {
     const requestedAddress = req.query.address;
     console.log("Received a request for active peers list", requestedAddress ? `(filtered by ${requestedAddress})` : '');
 
@@ -121,17 +121,15 @@ function startAppServer(onionAddress: string) {
 
 try {
 
-  // Temporary disabled. Used to generate a new onion address every time
-
-  //console.log(`Checking Tor directories...`);
-  //rmSync(HIDDEN_SERVICE_DIR, { recursive: true, force: true });
-  //console.log('Old hidden service directory removed.');
-  //mkdirSync(DATA_DIR, { recursive: true });
-  //mkdirSync(HIDDEN_SERVICE_DIR, { recursive: true });
-  //if (process.platform !== 'win32') {
-    //chmodSync(DATA_DIR, 0o700);
-    //chmodSync(HIDDEN_SERVICE_DIR, 0o700);
-  //}
+  console.log(`Checking Tor directories...`);
+  rmSync(HIDDEN_SERVICE_DIR, { recursive: true, force: true });
+  console.log('Old hidden service directory removed.');
+  mkdirSync(DATA_DIR, { recursive: true });
+  mkdirSync(HIDDEN_SERVICE_DIR, { recursive: true });
+  if (process.platform !== 'win32') {
+    chmodSync(DATA_DIR, 0o700);
+    chmodSync(HIDDEN_SERVICE_DIR, 0o700);
+  }
   
   console.log('Tor directories ensured.');
 } catch (err) {

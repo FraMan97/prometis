@@ -1,24 +1,23 @@
-> A P2P (peer-to-peer), private decentralized anonymous chat and file-sharing application built entirely on the Tor network.
+# prometis  
+
+
+`prometis` is a messaging system that ensures anonymity and privacy by routing *all* communication through the Tor network. It uses Onion Services for both the clients and the central server, meaning no IP addresses are ever exposed.
 
 
 
-Prometis is a messaging system that ensures anonymity and privacy by routing *all* communication through the Tor network. It uses Onion Services for both the clients and the central server, meaning no IP addresses are ever exposed.
+Unlike traditional chat apps, there is no central server that reads or relays messages. A lightweight "Discovery Server" exists only to help peers find each other anonymously. All chat sessions and file transfers are direct, peer-to-peer and end-to-end encrypted (E2EE) with AES-256 and signed with RSA-2048 Signature.
 
-
-
-Unlike traditional chat apps, there is no central server that reads or relays messages. A lightweight "Discovery Server" exists only to help peers find each other anonymously. All chat sessions and file transfers are direct, peer-to-peer, and end-to-end encrypted (E2EE).
-
-This server is **not required** for the core P2P functionality. The Prometis client is designed to function in a fully decentralized, server-less way.
+This server is **not required** for the core P2P functionality. The `prometis` client is designed to function in a fully decentralized, serverless way.
 
 The client application already includes a "Start Manual Session" feature. Users can bypass the Discovery Server entirely by manually exchanging their `.onion` address and public key (out-of-band) and using this form to establish a direct, end-to-end encrypted session.
 
 For a truly server-less deployment, the features related to the Discovery Server (like the "Subscribe" and "Refresh Active Peers" buttons) can be removed from the client's frontend (`client/local/index.html`) and local backend with minor modifications.
 
 
-
-> IMPORTANT: This project is currently a Proof of Concept (POC) and is not suitable for a production environment. It is intended for developer use only.
-It was created with the idea of enabling free communication in environments facing dictatorship, censorship, and a lack of free expression, allowing communication without fear of repercussions.
-Any use for illegal purposes is neither supported nor encouraged by the developers of this project.
+> [!WARNING]
+> This project is currently a Proof of Concept (POC) and is not suitable for a production environment. It is intended for developer use only.
+> It was created with the idea of enabling free communication in environments facing dictatorship, censorship and a lack of free expression, allowing communication without fear of repercussions.
+> Any use for illegal purposes is neither supported nor encouraged by the developers of this project.
 
 ---
 
@@ -73,7 +72,7 @@ Any use for illegal purposes is neither supported nor encouraged by the develope
 
 * **Strong Authentication:** All critical API actions (starting a session, sending a message, closing a session) are protected by RSA digital signatures to verify the sender's identity.
 
-* **"Panic" Button:** A one-click reset function that instantly destroys the local RSA keypair, clears all active sessions, and deletes cached files, generating a new identity.
+* **"Panic" Button:** A one-click reset function that instantly destroys the local RSA keypair, clears all active sessions and deletes cached files, generating a new identity.
 
 * **No Data Stored Permanently:** No data is saved to disk storage, but only locally in the processor's RAM. All data is deleted once the application is closed or via the PANIC button.
 
@@ -119,9 +118,9 @@ This is the application the user runs. It is a hybrid app consisting of a single
 
     * **Local Peer API:** It runs on `localhost` to serve the frontend UI and handle user actions (like sending messages or fetching peers).
 
-    * **Onion Peer API:** It spawns its own Tor process to create a public `.onion` address. It listens on this address to receive E2EE messages and file requests from other peers.
+    * **Onion Peer API:** It spawns its own Tor process to create a public `.onion` address. It listens on this address to start sessions, receive E2EE messages and file requests from other peers.
 
-2.  **The Web Frontend (HTML/JS):** A simple UI served to the user's browser. It only ever communicates with the `localhost` backend.
+2.  **The Web Frontend (HTML/JS):** A simple and raw UI served to the user's browser. It only ever communicates with the `localhost` backend.
 
 
 
@@ -129,7 +128,7 @@ The key component is that the backend **spawns its own Tor process and creates i
 
 * All outgoing communication (to the Discovery Server or other peers) is forcibly routed through the local Tor SOCKS proxy using `socks-proxy-agent`.
 
-* The frontend (`index.html`) only talks to the local backend (`localhost:3056`), which handles all cryptography, key management, and anonymous routing.
+* The frontend (`index.html`) only talks to the local backend (`localhost:3056`), which handles all cryptography, key management and anonymous routing.
 
 
 
@@ -137,7 +136,7 @@ The key component is that the backend **spawns its own Tor process and creates i
 
 
 
-1.  **Client A** starts, creates its `.onion` service, and registers itself (public key, nickname) with the **Discovery Server**.
+1.  **Client A** starts, creates its `.onion` service and registers itself (public key, nickname) with the **Discovery Server**.
 
 2.  **Client B** does the same.
 
@@ -182,16 +181,16 @@ The key component is that the backend **spawns its own Tor process and creates i
 This project requires manual configuration to set up the Tor services.
 
 
-
-### Prerequisites
-
-
-
-* Node.js (v18 or later)
-
-* npm (v9 or later)
-
-* **Tor Expert Bundle:** You **must** download the correct Tor Expert Bundle for your OS (Linux, Windows, or macOS) from the [official Tor Project website](https://www.torproject.org/download/expert/).
+> [!WARNING]
+> ### Prerequisites
+>
+>
+>
+> * Node.js (v18 or later)
+>
+> * npm (v9 or later)
+>
+> * **Tor Expert Bundle:** You **must** download the correct Tor Expert Bundle for your OS (Linux, Windows, or macOS) from the [official Tor Project website](https://www.torproject.org/download/expert/).
 
 
 
@@ -229,9 +228,9 @@ The Discovery Server MUST be set up first, as its onion address is required by t
 
     * Extract the **Tor Expert Bundle** you downloaded into the `server/` directory.
 
-    * Rename the extracted folder (e.g., `tor-expert-bundle-linux...`) to a simple name, like `tor-bundle`.
+    * Rename the extracted folder (e.g., `tor-expert-bundle-linux...`) to a simple name, like `tor-bundle-default`.
 
-    * Edit the `.env` file and set `TOR_BUNDLE_DIR` to match that folder name (e.g., `TOR_BUNDLE_DIR="tor-bundle"`).
+    * Edit the `.env` file and set `TOR_BUNDLE_DIR` to match that folder name (e.g., `TOR_BUNDLE_DIR="tor/tor-bundle-default"`).
 
 
 
@@ -249,7 +248,7 @@ The Discovery Server MUST be set up first, as its onion address is required by t
 
     * After starting, Tor will generate the hidden service files.
 
-    * Look in the path you configured: `server/tor-bundle/data/hidden_service/hostname`
+    * Look in the path you configured: `server/tor/tor-bundle-default/data/hidden_service/hostname`
 
     * Open the `hostname` file and copy the `.onion` address (e.g., `tw4dj6...exqd.onion`). **This is your Discovery Server address.**
 
@@ -283,9 +282,9 @@ The Discovery Server MUST be set up first, as its onion address is required by t
 
     * Extract the **Tor Expert Bundle** into the `client/` directory.
 
-    * Rename the folder to `tor-bundle` (or a name of your choice).
+    * Rename the folder to `tor-bundle-default` (or a name of your choice).
 
-    * Edit the `.env` file and set `TOR_BUNDLE_DIR` (e.g., `TOR_BUNDLE_DIR="tor-bundle"`).
+    * Edit the `.env` file and set `TOR_BUNDLE_DIR` (e.g., `TOR_BUNDLE_DIR="tor/tor-bundle-default"`).
 
 
 
@@ -359,6 +358,8 @@ This project was designed with security and anonymity as the highest priorities.
 
 * **Path Traversal Protection:** The file download API is secured against path traversal attacks, ensuring a user cannot be tricked into overwriting system files.
 
+* **DoS Protection (Rate Limiting):** Strict rate limits are enforced on both the Discovery Server and client P2P endpoints to prevent spam, resource exhaustion and abuse.
+
 
 
 ---
@@ -370,8 +371,6 @@ This project was designed with security and anonymity as the highest priorities.
 
 
 Here is future planned developments:
-
-* Add rate limiting for clients and the discovery server.
 
 * Add expiring messages between clients.
 

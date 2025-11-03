@@ -2,15 +2,16 @@ import express, { Application, Request, Response } from 'express';
 import { SessionChannel } from '../services/session_channel';
 import { CloseSessionBody, CloseSessionSchema, DownloadFileBody, DownloadFileSchema, SendMessageBody, SendMessageSchema, StartSessionBody, StartSessionSchema } from '../models/model';
 import { validateCloseSession, validateDownloadFile, validateSendMessage, validateStartSession } from '../services/validation'; // Renamed imports
-import { fileCache, messagesQueue, openedSessions } from '../models/global'; // Renamed imports
+import { downloadFileLimiter, fileCache, messagesQueue, openedSessions, sendMessageLimiter } from '../models/global';
 import { Message } from '../services/message';
 import { verifySignature } from '../services/common';
+import { sessionLimiter } from '../models/global';
 
 export const app: Application = express();
 
 app.use(express.json());
 
-app.post("/api/start-session", validateStartSession(StartSessionSchema), (req: Request<{}, {}, StartSessionBody, {}>, res: Response) => {
+app.post("/api/start-session", validateStartSession(StartSessionSchema), sessionLimiter, (req: Request<{}, {}, StartSessionBody, {}>, res: Response) => {
     try {
         const { senderAddress: senderAddress, senderNickname: senderNickname, senderPublicKey: senderPublicKey, encryptedSessionKey: encryptedSessionKey, signature, ...rest } = req.body;
         const dataToVerify = { senderAddress: senderAddress, senderPublicKey: senderPublicKey, senderNickname: senderNickname, encryptedSessionKey: encryptedSessionKey};
@@ -49,7 +50,7 @@ app.post("/api/start-session", validateStartSession(StartSessionSchema), (req: R
 });
 
 
-app.post("/api/close-session", validateCloseSession(CloseSessionSchema), (req: Request<{}, {}, CloseSessionBody, {}>, res: Response) => {
+app.post("/api/close-session", validateCloseSession(CloseSessionSchema), sessionLimiter, (req: Request<{}, {}, CloseSessionBody, {}>, res: Response) => {
     try {
         const { senderAddress: senderAddress, signature } = req.body;
         const sessionChannel = openedSessions.get(senderAddress);
@@ -77,7 +78,7 @@ app.post("/api/close-session", validateCloseSession(CloseSessionSchema), (req: R
 });
 
 
-app.post("/api/send-message", validateSendMessage(SendMessageSchema), (req: Request<{}, {}, SendMessageBody, {}>, res: Response) => {
+app.post("/api/send-message", validateSendMessage(SendMessageSchema), sendMessageLimiter, (req: Request<{}, {}, SendMessageBody, {}>, res: Response) => {
     try {
         const { senderAddress: senderAddress, encryptedMessage: encryptedMessage, iv, signature, ...rest } = req.body;
         const dataToVerify = { encryptedMessage: encryptedMessage, iv: iv, senderAddress: senderAddress };
@@ -122,7 +123,7 @@ app.post("/api/send-message", validateSendMessage(SendMessageSchema), (req: Requ
 });
 
 
-app.post("/api/download-file", validateDownloadFile(DownloadFileSchema), async (req: Request<{}, {}, DownloadFileBody, {}>, res: Response) => {
+app.post("/api/download-file", validateDownloadFile(DownloadFileSchema), downloadFileLimiter, async (req: Request<{}, {}, DownloadFileBody, {}>, res: Response) => {
     const fileId = req.body.fileId;
     if (!fileId) {
         return res.status(400).send({ "error": "Missing fileId in request body", "status": 400 });

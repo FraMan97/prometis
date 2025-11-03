@@ -6,7 +6,8 @@ import express, { Application} from 'express';
 import { SocksProxyAgent } from "socks-proxy-agent";
 import { ChildProcess } from "child_process";
 import path from 'path';
-
+import { Request } from 'express';
+import rateLimit from 'express-rate-limit';
 
 function getTorExecutableName(): string {
     switch (process.platform) {
@@ -55,3 +56,47 @@ export let torProcess: ChildProcess | null = null;
 export const setTorProcess = (process: ChildProcess) => {
     torProcess = process;
 }
+
+const senderAddressKeyGenerator = (req: Request): string => {
+    const body = req.body as { senderAddress?: string };
+
+    if (body && body.senderAddress) {
+        return body.senderAddress;
+    }
+
+    return req.ip || ""; 
+};
+
+export const sessionLimiter = rateLimit({
+    windowMs: 60 * 1000, 
+    max: 3,
+    standardHeaders: true, 
+    legacyHeaders: false,
+    keyGenerator: senderAddressKeyGenerator
+});
+
+const fileIdKeyGenerator = (req: Request): string => {
+    const body = req.body as { fileId?: string };
+
+    if (body && body.fileId) {
+        return body.fileId;
+    }
+
+    return ""; 
+};
+
+export const downloadFileLimiter = rateLimit({
+    windowMs: 60 * 1000, 
+    max: 100,
+    standardHeaders: true, 
+    legacyHeaders: false,
+    keyGenerator: fileIdKeyGenerator
+});
+
+export const sendMessageLimiter = rateLimit({
+    windowMs: 1000, 
+    max: 1,
+    standardHeaders: true, 
+    legacyHeaders: false,
+    keyGenerator: senderAddressKeyGenerator
+});
